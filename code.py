@@ -1,196 +1,91 @@
 import streamlit as st
 
-st.set_page_config(page_title="Ruta de decisión estadística", layout="centered")
+st.set_page_config(page_title="Árbol de decisión estadístico", layout="centered")
 
-st.title("🧠 Ruta interactiva: ¿Qué prueba estadística debo usar?")
-st.write("Responde las preguntas y te guiaré a la prueba correcta.")
+st.title("Árbol de decisión para elegir una prueba estadística")
 
-st.write("---")
+st.write("Responde las preguntas y el sistema te dirá cuál prueba usar.")
 
-# -----------------------------
-# PREGUNTA 1: TIPO DE ANÁLISIS
-# -----------------------------
+# --- Pregunta 1 ---
 q1 = st.radio(
-    "1️⃣ ¿Qué quieres analizar?",
-    [
-        "Comparar grupos",
-        "Asociar variables",
-        "Predicción (regresión)"
-    ]
+    "1. ¿Tu variable dependiente es numérica o categórica?",
+    ["Numérica", "Categórica"],
+    index=None
 )
 
-st.write("---")
-
-# =====================================================
-#               COMPARAR GRUPOS
-# =====================================================
-if q1 == "Comparar grupos":
-
-    # Número de grupos
-    n_groups = st.radio(
-        "2️⃣ ¿Cuántos grupos quieres comparar?",
-        ["2 grupos", "Más de 2 grupos"]
+if q1 == "Numérica":
+    # --- Pregunta 2 ---
+    q2 = st.radio(
+        "2. ¿Tus datos siguen una distribución normal?",
+        ["Sí", "No"],
+        index=None
     )
 
-    # Independencia
-    independent = st.radio(
-        "3️⃣ ¿Las muestras son independientes o relacionadas?",
-        ["Independientes", "Relacionadas / Pareadas"]
-    )
-
-    # Normalidad
-    normal = st.radio(
-        "4️⃣ ¿Los datos siguen una distribución normal?",
-        ["Sí", "No"]
-    )
-
-    st.write("---")
-
-    # -------------------------
-    # RESULTADOS
-    # -------------------------
-    st.subheader("📌 Prueba recomendada")
-
-    # 2 GRUPOS
-    if n_groups == "2 grupos":
-
-        if independent == "Independientes":
-
-            if normal == "Sí":
-                st.success("### t de Student para muestras independientes")
-                st.write("""
-                **Cuándo usarla:**  
-                - Comparas medias de 2 grupos independientes  
-                - Los datos son normales  
-                - Varianzas similares  
-                """)
-
-            else:
-                st.success("### U de Mann–Whitney")
-                st.write("""
-                **Cuándo usarla:**  
-                - 2 grupos independientes  
-                - Datos no normales u ordinales  
-                """)
-
-        # Relacionadas
-        else:
-            if normal == "Sí":
-                st.success("### t de Student para muestras relacionadas")
-                st.write("""
-                **Cuándo usarla:**  
-                - Muestras pareadas  
-                - Medición antes–después  
-                - Diferencias normales  
-                """)
-
-            else:
-                st.success("### Prueba de Wilcoxon")
-                st.write("""
-                **Cuándo usarla:**  
-                - Datos pareados  
-                - No normales  
-                """)
-
-    # MÁS DE 2 GRUPOS
-    elif n_groups == "Más de 2 grupos":
-
-        if normal == "Sí" and independent == "Independientes":
-            st.success("### ANOVA de un factor")
-            st.write("""
-            **Cuándo usarla:**  
-            - 3 o más grupos independientes  
-            - Datos normales  
-            - Varianzas homogéneas  
-            """)
-
-        else:
-            st.success("### Kruskal–Wallis")
-            st.write("""
-            **Cuándo usarla:**  
-            - 3 o más grupos independientes  
-            - Datos NO normales  
-            - Datos ordinales o muestras pequeñas  
-            """)
-
-# =====================================================
-#             ASOCIAR VARIABLES (CORRELACIÓN)
-# =====================================================
-elif q1 == "Asociar variables":
-
-    tipo_var = st.radio(
-        "2️⃣ ¿Qué tipo de variables quieres relacionar?",
-        [
-            "Dos variables numéricas",
-            "Dos variables categóricas",
-            "Una numérica y una categórica"
-        ]
-    )
-
-    st.write("---")
-
-    st.subheader("📌 Prueba recomendada")
-
-    # NUMÉRICAS
-    if tipo_var == "Dos variables numéricas":
-
-        normal_corr = st.radio(
-            "¿Ambas variables siguen distribución normal?",
-            ["Sí", "No"]
+    if q2:
+        # --- Pregunta 3 ---
+        q3 = st.radio(
+            "3. ¿Estás comparando 2 grupos o más de 2 grupos?",
+            ["2 grupos", "Más de 2 grupos"],
+            index=None
         )
 
-        if normal_corr == "Sí":
-            st.success("### Correlación de Pearson")
-            st.write("""
-            **Cuándo usarla:**  
-            - Dos variables numéricas  
-            - Relación lineal  
-            - Normalidad  
-            """)
+        if q3 == "2 grupos":
+            # --- Pregunta 4 ---
+            q4 = st.radio(
+                "4. ¿Los grupos son independientes o relacionados?",
+                ["Independientes", "Relacionados"],
+                index=None
+            )
 
-        else:
-            st.success("### Correlación de Spearman")
-            st.write("""
-            **Cuándo usarla:**  
-            - Variables numéricas NO normales  
-            - Variables ordinales  
-            - Relación monotónica  
-            """)
+            if q4 and q2 == "Sí":
+                if q4 == "Independientes":
+                    st.success("👉 **Prueba recomendada: t de Student para muestras independientes**")
+                else:
+                    st.success("👉 **Prueba recomendada: t de Student para muestras relacionadas (pareada)**")
 
-    # CATEGÓRICAS
-    elif tipo_var == "Dos variables categóricas":
-        st.success("### Chi-cuadrada de independencia")
-        st.write("""
-        **Cuándo usarla:**  
-        - Dos variables categóricas  
-        - Tabla de contingencia  
-        - Frecuencias esperadas ≥ 5  
-        """)
+            if q4 and q2 == "No":
+                if q4 == "Independientes":
+                    st.success("👉 **Prueba recomendada: U de Mann–Whitney**")
+                else:
+                    st.success("👉 **Prueba recomendada: Prueba de Wilcoxon**")
 
-    # NUMÉRICA + CATEGÓRICA
-    elif tipo_var == "Una numérica y una categórica":
-        st.info("""
-        ➡️ Esto no es una correlación, sino una **comparación de medias entre grupos**.
+        if q3 == "Más de 2 grupos":
+            if q2 == "Sí":
+                st.success("👉 **Prueba recomendada: ANOVA de un factor**")
+            else:
+                st.success("👉 **Prueba recomendada: Kruskal–Wallis**")
 
-        Usa:  
-        - **t de Student / Mann–Whitney** si hay 2 grupos  
-        - **ANOVA / Kruskal–Wallis** si hay más de 2 grupos  
-        """)
 
-# =====================================================
-#                    REGRESIÓN
-# =====================================================
-elif q1 == "Predicción (regresión)":
+# ---------------- CATEGÓRICAS ----------------
 
-    st.subheader("📌 Prueba recomendada")
+if q1 == "Categórica":
+    q5 = st.radio(
+        "2. ¿Quieres analizar asociación/relación entre variables categóricas?",
+        ["Sí", "No"],
+        index=None
+    )
 
-    st.success("### Regresión lineal simple")
-    st.write("""
-    **Cuándo usarla:**  
-    - Una variable independiente (predictora)  
-    - Una variable dependiente numérica  
-    - Relación lineal  
-    """)
+    if q5 == "Sí":
+        st.success("👉 **Prueba recomendada: Chi-cuadrada**")
 
-st.write("---")
-st.write("Hecho con ❤️ para ayudarte a elegir la prueba correcta.")
+    if q5 == "No":
+        q6 = st.radio(
+            "3. ¿Quieres analizar asociación entre variables numéricas y categóricas?",
+            ["Sí", "No"],
+            index=None
+        )
+
+        if q6 == "Sí":
+            q7 = st.radio(
+                "4. ¿Tu variable numérica sigue una distribución normal?",
+                ["Sí", "No"],
+                index=None
+            )
+
+            if q7 == "Sí":
+                st.success("👉 **Prueba recomendada: Correlación de Pearson**")
+            elif q7 == "No":
+                st.success("👉 **Prueba recomendada: Correlación de Spearman**")
+
+        if q6 == "No":
+            st.warning("⚠ No hay suficiente información para determinar una prueba.")
